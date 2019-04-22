@@ -1,0 +1,31 @@
+# Average Player Mentions on Gamedays
+
+SELECT PLAYER_NAME , AVG(GDM.mentions)
+FROM nba_analysis.playerstats P inner join 
+
+(Select pm.PLAYER_ID, pm.CREATE_DATE, count(TWEETID) Mentions from player_mentions pm 
+inner join player_game_stats pgs on pm.PLAYER_ID = pgs.PLAYER_ID and pm.CREATE_DATE=pgs.GAME_DATE
+group by pm.PLAYER_ID, pm.CREATE_DATE) GDM on P.PLAYER_ID = GDM.PLAYER_ID
+group by PLAYER_NAME;
+
+# Average Player Mentions on non-Gamedays
+
+SELECT PLAYER_NAME , AVG(GDM.mentions)
+FROM nba_analysis.playerstats P inner join 
+
+(Select pm.PLAYER_ID, pm.CREATE_DATE, count(TWEETID) Mentions from player_mentions pm 
+left join player_game_stats pgs on pm.PLAYER_ID = pgs.PLAYER_ID and pm.CREATE_DATE=pgs.GAME_DATE
+where ISNULL(PGS.GAME_DATE)
+group by pm.PLAYER_ID, pm.CREATE_DATE) GDM on P.PLAYER_ID = GDM.PLAYER_ID
+group by PLAYER_NAME;
+
+
+#Average Tweets after a W
+SELECT PLAYER_NAME , AVG(GDM.mentions)
+FROM nba_analysis.playerstats P inner join 
+
+(Select pm.PLAYER_ID, pm.CREATE_DATE, count(TWEETID) Mentions from player_mentions pm 
+inner join player_game_stats pgs on pm.PLAYER_ID = pgs.PLAYER_ID and pm.CREATE_DATE = DATE_ADD(pgs.GAME_DATE, INTERVAL 1 DAY) and PGS.WL = 'W'
+where ISNULL(PGS.GAME_DATE)
+group by pm.PLAYER_ID, pm.CREATE_DATE) GDM on P.PLAYER_ID = GDM.PLAYER_ID
+group by PLAYER_NAME;
